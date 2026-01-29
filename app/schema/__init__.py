@@ -6,3 +6,5 @@ from .communication_quality_schema import CommunicationQualityOutput
 from .keyword_detection_schema import KeywordDetectionOutput
 from .sentiment_detection_schema import SentimentDetectionOutput
 from .qualification_completeness_schema import QualificationCompletenessOutput
+from .script_adherence_schema import ScriptAdherenceOutput
+from .objection_handling_schema import ObjectionHandlingOutput
