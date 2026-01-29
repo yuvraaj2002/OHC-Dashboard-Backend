@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     SESSION_SECRET_KEY:str
     SECRET_KET:str
     ALGORITHM:str
+    OPENAI_API_KEY:str
     ACCESS_TOKEN_EXPIRE_MINUTES:int
     FRONTEND_BASE_URL: str = "http://localhost:3000"  # Default frontend URL for verification links
     
