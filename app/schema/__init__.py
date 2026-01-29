@@ -3,3 +3,6 @@ from .agent_schema import AgentResponse, AgentCreate, AgentUpdate
 from .call_diarization_response_schema import CallDiarizationOutput
 from .consent_capture_schema import ConsentCaptureOutput
 from .communication_quality_schema import CommunicationQualityOutput
+from .keyword_detection_schema import KeywordDetectionOutput
+from .sentiment_detection_schema import SentimentDetectionOutput
+from .qualification_completeness_schema import QualificationCompletenessOutput
