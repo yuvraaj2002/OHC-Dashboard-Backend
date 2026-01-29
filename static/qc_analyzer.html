@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OHC Call QC Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #22d3ee;
+            --accent-success: #22c55e;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .input-group input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn-analyze {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .score-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .score-value {
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .metrics-row {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent-secondary);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .summary-card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .summary-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .analysis-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .analysis-card h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .analysis-card h3 .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .icon-success {
+            background: var(--accent-success);
+        }
+
+        .icon-warning {
+            background: var(--accent-warning);
+        }
+
+        .icon-danger {
+            background: var(--accent-danger);
+        }
+
+        .analysis-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .analysis-item:last-child {
+            border-bottom: none;
+        }
+
+        .analysis-item .label {
+            color: var(--text-secondary);
+        }
+
+        .analysis-item .value {
+            font-weight: 500;
+        }
+
+        .analysis-item .value.true {
+            color: var(--accent-success);
+        }
+
+        .analysis-item .value.false {
+            color: var(--accent-danger);
+        }
+
+        .list-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .list-card h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .list-card ul {
+            list-style: none;
+        }
+
+        .list-card li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .list-card li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-success);
+        }
+
+        .list-card.flags li::before {
+            content: '⚠';
+            color: var(--accent-warning);
+        }
+
+        .list-card.improvements li::before {
+            content: '→';
+            color: var(--accent-primary);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-danger);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: var(--accent-danger);
+            display: none;
+            margin-bottom: 2rem;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ OHC Call QC Analyzer</h1>
+            <p>AI-Powered Quality Control for Healthcare Calls</p>
+        </header>
+
+        <section class="input-section">
+            <div class="input-group">
+                <input type="text" id="recordingUrl"
+                    placeholder="Enter recording URL (e.g., https://example.com/call.wav)" />
+                <button class="btn-analyze" id="analyzeBtn" onclick="analyzeCall()">🔍 Analyze Call</button>
+            </div>
+        </section>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Analyzing call... This may take a minute.</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="results" id="results">
+            <div class="score-card">
+                <div class="score-value" id="overallScore">--</div>
+                <div class="score-label">Overall QC Score</div>
+                <div class="metrics-row">
+                    <div class="metric">
+                        <div class="metric-value" id="analysisDuration">--</div>
+                        <div class="metric-label">Analysis Time (s)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="llmCost">--</div>
+                        <div class="metric-label">LLM Cost ($)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h2>📋 Executive Summary</h2>
+                <p id="summaryText"></p>
+            </div>
+
+            <div class="grid-2">
+                <div class="list-card">
+                    <h3>✅ Key Strengths</h3>
+                    <ul id="strengthsList"></ul>
+                </div>
+                <div class="list-card improvements">
+                    <h3>📈 Areas for Improvement</h3>
+                    <ul id="improvementsList"></ul>
+                </div>
+            </div>
+
+            <div class="list-card flags" id="flagsCard" style="display: none;">
+                <h3>🚨 Critical Flags</h3>
+                <ul id="flagsList"></ul>
+            </div>
+
+            <h2 style="margin-bottom: 1rem; color: var(--accent-secondary);">Detailed Analysis</h2>
+            <div class="grid-2">
+                <div class="analysis-card" id="scriptAdherenceCard"></div>
+                <div class="analysis-card" id="consentCard"></div>
+                <div class="analysis-card" id="qualificationCard"></div>
+                <div class="analysis-card" id="objectionCard"></div>
+                <div class="analysis-card" id="communicationCard"></div>
+                <div class="analysis-card" id="keywordCard"></div>
+                <div class="analysis-card" id="sentimentCard"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by OHC Dashboard Backend | LangGraph AI Pipeline</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000'; // Change this to your server address
+
+        async function analyzeCall() {
+            const urlInput = document.getElementById('recordingUrl');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loader = document.getElementById('loader');
+            const results = document.getElementById('results');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const recordingUrl = urlInput.value.trim();
+            if (!recordingUrl) {
+                alert('Please enter a recording URL');
+                return;
+            }
+
+            // Reset UI
+            results.classList.remove('active');
+            errorMessage.classList.remove('active');
+            loader.classList.add('active');
+            analyzeBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/qc/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ recording_url: recordingUrl }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Analysis failed');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                errorMessage.textContent = `Error: ${error.message}`;
+                errorMessage.classList.add('active');
+            } finally {
+                loader.classList.remove('active');
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+
+            // Score
+            const scoreEl = document.getElementById('overallScore');
+            scoreEl.textContent = data.overall_score;
+            scoreEl.style.color = getScoreColor(data.overall_score);
+
+            // Metrics
+            document.getElementById('analysisDuration').textContent = data.analysis_duration.toFixed(1);
+            document.getElementById('llmCost').textContent = data.llm_cost.toFixed(4);
+
+            // Summary
+            document.getElementById('summaryText').textContent = data.summary;
+
+            // Strengths
+            const strengthsList = document.getElementById('strengthsList');
+            strengthsList.innerHTML = data.key_strengths.map(s => `<li>${s}</li>`).join('');
+
+            // Improvements
+            const improvementsList = document.getElementById('improvementsList');
+            improvementsList.innerHTML = data.areas_for_improvement.map(s => `<li>${s}</li>`).join('');
+
+            // Critical Flags
+            const flagsCard = document.getElementById('flagsCard');
+            const flagsList = document.getElementById('flagsList');
+            if (data.critical_flags && data.critical_flags.length > 0) {
+                flagsList.innerHTML = data.critical_flags.map(s => `<li>${s}</li>`).join('');
+                flagsCard.style.display = 'block';
+            } else {
+                flagsCard.style.display = 'none';
+            }
+
+            // Detailed Cards
+            renderAnalysisCard('scriptAdherenceCard', '📜 Script Adherence', data.script_adherence);
+            renderAnalysisCard('consentCard', '✅ Consent Capture', data.consent_capture);
+            renderAnalysisCard('qualificationCard', '📋 Qualification', data.qualification_completeness);
+            renderAnalysisCard('objectionCard', '💬 Objection Handling', data.objection_handling);
+            renderAnalysisCard('communicationCard', '🗣️ Communication Quality', data.communication_quality);
+            renderAnalysisCard('keywordCard', '🔑 Keyword Detection', data.keyword_detection);
+            renderAnalysisCard('sentimentCard', '😊 Sentiment Detection', data.sentiment_detection);
+
+            results.classList.add('active');
+        }
+
+        function renderAnalysisCard(cardId, title, data) {
+            const card = document.getElementById(cardId);
+            if (!data) {
+                card.innerHTML = `<h3>${title}</h3><p style="color: var(--text-secondary);">No data available</p>`;
+                return;
+            }
+
+            let html = `<h3>${title}</h3>`;
+            for (const [key, value] of Object.entries(data)) {
+                if (key === 'reasoning' || key === 'summary') continue; // Skip long text for compact view
+                const displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                let displayValue = value;
+                let valueClass = '';
+
+                if (typeof value === 'boolean') {
+                    displayValue = value ? 'Yes' : 'No';
+                    valueClass = value ? 'true' : 'false';
+                } else if (Array.isArray(value)) {
+                    displayValue = value.length > 0 ? value.join(', ') : 'None';
+                } else if (typeof value === 'object' && value !== null) {
+                    displayValue = JSON.stringify(value).substring(0, 50) + '...';
+                }
+
+                html += `<div class="analysis-item">
+                    <span class="label">${displayKey}</span>
+                    <span class="value ${valueClass}">${displayValue}</span>
+                </div>`;
+            }
+            card.innerHTML = html;
+        }
+
+        function getScoreColor(score) {
+            if (score >= 80) return 'var(--accent-success)';
+            if (score >= 50) return 'var(--accent-warning)';
+            return 'var(--accent-danger)';
+        }
+    </script>
+</body>
+
+</html>
